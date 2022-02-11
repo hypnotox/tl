@@ -1097,7 +1097,25 @@ end
 commands["check"] = function(tlconfig, args)
    turbo(true)
    local env
-   for i, input_file in ipairs(args["file"]) do
+   local global_env_def = tlconfig.global_env_def
+   local files = {}
+
+   if global_env_def ~= nil then
+      for _, input_file in ipairs(args["file"]) do
+         if global_env_def and input_file:match("(.*)%.d.tl$") then
+            tlconfig.global_env_def = nil
+            table.insert(files, 1, input_file)
+         else
+            table.insert(files, input_file)
+         end
+      end
+   end
+
+   for i, input_file in ipairs(files) do
+      if global_env_def and not input_file:match("(.*)%.d.tl$") then
+         tlconfig.global_env_def = global_env_def
+      end
+
       if not env then
          env = setup_env(tlconfig, input_file)
       end
@@ -1114,8 +1132,8 @@ commands["check"] = function(tlconfig, args)
 
    local ok = report_all_errors(tlconfig, env)
 
-   if ok and tlconfig["quiet"] == false and #args["file"] == 1 then
-      local file_name = args["file"][1]
+   if ok and tlconfig["quiet"] == false and #files == 1 then
+      local file_name = files[1]
 
       local output_file = get_output_filename(file_name)
       print("========================================")
@@ -1254,6 +1272,10 @@ do
       turbo(true)
       tlconfig["quiet"] = true
       tlconfig["gen_compat"] = "off"
+
+      if tlconfig.global_env_def and args["file"][1]:match("(.*)%.d.tl$") then
+         tlconfig.global_env_def = nil
+      end
 
       local env = setup_env(tlconfig, args["file"][1])
       env.keep_going = true
