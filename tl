@@ -1100,14 +1100,12 @@ commands["check"] = function(tlconfig, args)
    local global_env_def = tlconfig.global_env_def
    local files = {}
 
-   if global_env_def ~= nil then
-      for _, input_file in ipairs(args["file"]) do
-         if global_env_def and input_file:match("(.*)%.d.tl$") then
-            tlconfig.global_env_def = nil
-            table.insert(files, 1, input_file)
-         else
-            table.insert(files, input_file)
-         end
+   for _, input_file in ipairs(args["file"]) do
+      if global_env_def and input_file:match("(.*)%.d.tl$") then
+         tlconfig.global_env_def = nil
+         table.insert(files, 1, input_file)
+      else
+         table.insert(files, input_file)
       end
    end
 
